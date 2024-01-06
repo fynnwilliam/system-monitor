@@ -1,27 +1,24 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-#include <string>
 #include <vector>
 
 #include "process.h"
 #include "processor.h"
 
-class System {
+class main_system {
  public:
-  Processor& Cpu();                   // TODO: See src/system.cpp
-  std::vector<Process>& Processes();  // TODO: See src/system.cpp
-  float MemoryUtilization();          // TODO: See src/system.cpp
-  long UpTime();                      // TODO: See src/system.cpp
-  int TotalProcesses();               // TODO: See src/system.cpp
-  int RunningProcesses();             // TODO: See src/system.cpp
-  std::string Kernel();               // TODO: See src/system.cpp
-  std::string OperatingSystem();      // TODO: See src/system.cpp
+  const processor& cpu() const;
+  static std::vector<process> processes();
+  static float memory_utilization();
+  static long up_time();
+  static int total_processes();
+  static int running_processes();
+  static const std::string& kernel();
+  static const std::string& operating_system();
 
-  // TODO: Define any necessary private members
  private:
-  Processor cpu_ = {};
-  std::vector<Process> processes_ = {};
+  processor cpu_;
 };
 
-#endif
+#endif // SYSTEM_H

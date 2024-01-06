@@ -3,8 +3,17 @@
 
 #include <string>
 
-namespace Format {
-std::string ElapsedTime(long times);  // TODO: See src/format.cpp
-};                                    // namespace Format
+namespace format {
+static std::string elapsed_time(long seconds) noexcept {
+  const auto hours = seconds / 3'600;
+  seconds %= 3'600;
 
-#endif
+  const auto minutes = seconds / 60;
+  seconds %= 60;
+
+  return std::to_string(hours) + ':' + std::to_string(minutes) +
+         (seconds < 10 ? ":0" : ":") + std::to_string(seconds);
+}
+}  // namespace format
+
+#endif  // FORMAT_H

@@ -1,41 +1,80 @@
-#include <unistd.h>
-#include <cstddef>
-#include <set>
-#include <string>
-#include <vector>
-
-#include "process.h"
-#include "processor.h"
 #include "system.h"
 
-using std::set;
-using std::size_t;
-using std::string;
-using std::vector;
-/*You need to complete the mentioned TODOs in order to satisfy the rubric criteria "The student will be able to extract and display basic data about the system."
+#include <unistd.h>
 
-You need to properly format the uptime. Refer to the comments mentioned in format. cpp for formatting the uptime.*/
+#include <cstddef>
+#include <fstream>
 
-// TODO: Return the system's CPU
-Processor& System::Cpu() { return cpu_; }
+namespace {
+std::string pretty_name() {
+  std::system(
+      "less /etc/os-release | grep PRETTY | cut -d '=' -f2 | cut -d '\"' -f2 > "
+      "temp_file");
+  std::string os;
+  std::getline(std::ifstream{"temp_file"}, os);
+  return os;
+}
 
-// TODO: Return a container composed of the system's processes
-vector<Process>& System::Processes() { return processes_; }
+std::string kernel_version() {
+  std::system("uname -r > temp_file");
+  std::string kernel;
+  std::getline(std::ifstream{"temp_file"}, kernel);
+  return kernel;
+}
+}  // namespace
 
-// TODO: Return the system's kernel identifier (string)
-std::string System::Kernel() { return string(); }
+const processor& main_system::cpu() const { return cpu_; }
 
-// TODO: Return the system's memory utilization
-float System::MemoryUtilization() { return 0.0; }
+std::vector<process> main_system::processes() {
+  std::system("ls /proc | grep -E ^[0-9]+$ > temp_file");
+  std::vector<process> processes;
+  std::ifstream temp_file{"temp_file"};
 
-// TODO: Return the operating system name
-std::string System::OperatingSystem() { return string(); }
+  int process_id;
+  while (temp_file >> process_id) processes.emplace_back(process_id);
 
-// TODO: Return the number of processes actively running on the system
-int System::RunningProcesses() { return 0; }
+  return processes;
+}
 
-// TODO: Return the total number of processes on the system
-int System::TotalProcesses() { return 0; }
+const std::string& main_system::kernel() {
+  static const auto kernel = kernel_version();
+  return kernel;
+}
 
-// TODO: Return the number of seconds since the system started running
-long int System::UpTime() { return 0; }
+float main_system::memory_utilization() {
+  std::system(
+      "less /proc/meminfo | head -n 4 | tr -d ' kB' | cut -d ':' -f2 > "
+      "temp_file");
+  long double total_memory, free_memory;
+  std::ifstream{"temp_file"} >> total_memory >> free_memory;
+
+  return (total_memory - free_memory) / total_memory;
+}
+
+const std::string& main_system::operating_system() {
+  static auto os = pretty_name();
+  return os;
+}
+
+int main_system::running_processes() {
+  std::system(
+      "less /proc/stat | grep procs_running | cut -d ' ' -f2 > temp_file");
+  int processes;
+  std::ifstream{"temp_file"} >> processes;
+
+  return processes;
+}
+
+int main_system::total_processes() {
+  std::system("less /proc/stat | grep processes | cut -d ' ' -f2 > temp_file");
+  int processes;
+  std::ifstream{"temp_file"} >> processes;
+
+  return processes;
+}
+
+long int main_system::up_time() {
+  long main_uptime;
+  std::ifstream{"/proc/uptime"} >> main_uptime;
+  return main_uptime;
+}
